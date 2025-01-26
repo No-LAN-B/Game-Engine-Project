@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Visual Studio Temporary Files and Folders
+.vs/
+*.vsidx
+
+# Build Folder
+build/
