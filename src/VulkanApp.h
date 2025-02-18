@@ -21,10 +21,12 @@ private:
     void initVulkan();
     void mainLoop();
     void cleanup();
+    void createInstance();
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     GLFWwindow* window;
+    VkInstance instance;
 };
 
 #endif // VULKAN_APP_H
