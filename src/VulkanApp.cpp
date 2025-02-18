@@ -1,10 +1,14 @@
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-// GLFW will include its own definitions and automatically load the Vulkan header with it
 
-#include <iostream> // Debugging Errors
-#include <stdexcept> // Debugging Errors
-#include <cstdlib> // Exit Success and Exit Failure
+
+#include "VulkanApp.h"
+
+VulkanApp::VulkanApp() {
+    // Constructor implementation (if needed)
+}
+
+VulkanApp::~VulkanApp() {
+    // Destructor implementation (even if empty)
+}
 
 
 // use constants instead of hardcoded width and height numbers because we'll be referring to these values a couple of times in the future.
@@ -53,6 +57,7 @@ private:
     // enter the main loop to start rendering frames
     // function to include a loop that iterates until the window is closed
     void mainLoop() { 
+
         // Event Loop For The Window
         while (!glfwWindowShouldClose(window)) { 
             glfwPollEvents();
