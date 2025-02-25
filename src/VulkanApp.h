@@ -10,8 +10,21 @@
 #include <cstdlib> // Exit Success and Exit Failure
 #include <vector>
 #include <cstring>
+#include <optional> // wrapper that contains no value until you assign something to it. At any point you can query if it contains a value or not by calling its has_value() member function. 
+
 
 class VulkanApp {
+    // any value of uint32_t could in theory be a valid queue family index including 0. 
+    // Luckily C++17 introduced a data structure to distinguish between the case of a value existing or not:
+    // std::optional (#include <optional> in header file)
+    struct QueueFamilyIndices {
+        std::optional<uint32_t> graphicsFamily;
+
+        // To make this more convenient, I added a generic check to the struct itself:
+        bool isComplete() {
+            return graphicsFamily.has_value();
+        }
+    };
 public:
     VulkanApp();
     ~VulkanApp();
@@ -34,13 +47,17 @@ private:
 
     void initWindow();
     void initVulkan();
+    void pickPhysicalDevice();
     void mainLoop();
     void cleanup();
     void createInstance();
     bool checkValidationLayerSupport();
+    bool isComplete();
+    bool isDeviceSuitable(VkPhysicalDevice device);
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     void setupDebugMessenger();
     std::vector<const char*> getRequiredExtensions();
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

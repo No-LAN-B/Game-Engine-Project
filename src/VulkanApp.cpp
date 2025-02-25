@@ -38,6 +38,8 @@ VkResult VulkanApp::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDe
     }
 }
 
+
+
 void VulkanApp::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -59,12 +61,103 @@ void VulkanApp::initWindow() {
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 }
 
+VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
 //  instance is the connection between your application and the Vulkan library and creating it involves specifying some details about your application to the driver.
 void VulkanApp::initVulkan() {
     // Vulkan initialization logic here
     createInstance();
     setupDebugMessenger();
+    pickPhysicalDevice();
+}
+
+// The graphics card that we'll end up selecting will be stored in a VkPhysicalDevice handle that is added as a new class member. 
+// This object will be implicitly destroyed when the VkInstance is destroyed, so we won't need to do anything new in the cleanup function.
+void VulkanApp::pickPhysicalDevice() {
+
+    // The graphics card that we'll end up selecting will be stored in a VkPhysicalDevice handle that is added as a new class member.
+    
+
+    // Listing the graphics cards is very similar to listing extensions and starts with querying just the number.
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+    // If there are 0 devices with Vulkan support then there is no point going further
+    if (deviceCount == 0) {
+        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    }
+    // Otherwise we can now allocate an array to hold all of the VkPhysicalDevice handles
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+    for (const auto& device : devices) {
+        if (isDeviceSuitable(device)) {
+            physicalDevice = device;
+            break;
+        }
+    }
+    // check if any of the physical devices meet the requirements
+    if (physicalDevice == VK_NULL_HANDLE) {
+        throw std::runtime_error("failed to find a suitable GPU!");
+    }
+}
+
+// Now we need to evaluate each of them and check if they are suitable for the operations we want to perform, because not all graphics cards are created equal :( :
+
+// To evaluate the suitability of a device we can start by querying for some details.
+// Basic device properties like the name, type and supported Vulkan version can be queried using vkGetPhysicalDeviceProperties
+
+// he support for optional features like texture compression, 64 bit floats and multi viewport rendering (useful for VR) can be queried using vkGetPhysicalDeviceFeatures:
+
+//bool VulkanApp::isDeviceSuitable(VkPhysicalDevice device) {
+    // As an example, let's say we consider our application only usable for dedicated graphics cards that support geometry shaders.
+    // Then the isDeviceSuitable function would look like this:
+    //VkPhysicalDeviceProperties deviceProperties;
+    //VkPhysicalDeviceFeatures deviceFeatures;
+    //vkGetPhysicalDeviceProperties(device, &deviceProperties);
+    //vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+    //return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;
+    //return true;
+//}
+
+
+bool VulkanApp::isDeviceSuitable(VkPhysicalDevice device) {
+    // use queue lookup function :)
+    QueueFamilyIndices indices = findQueueFamilies(device);
+
+    return indices.isComplete();
+}
+
+VulkanApp::QueueFamilyIndices VulkanApp::findQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+
+    // The process of retrieving the list of queue families is exactly what you expect and uses vkGetPhysicalDeviceQueueFamilyProperties
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+
+    // The VkQueueFamilyProperties struct contains some details about the queue family,
+    // including the type of operations that are supported and the number of queues that can be created based on that family
+    // I need to find at least one queue family that supports VK_QUEUE_GRAPHICS_BIT
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        // from struct can use this for an early exit from findQueueFamilies
+        if (indices.isComplete()) {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
 }
 
 void setupDebugMessenger() {
