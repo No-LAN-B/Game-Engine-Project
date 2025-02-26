@@ -69,7 +69,63 @@ void VulkanApp::initVulkan() {
     createInstance();
     setupDebugMessenger();
     pickPhysicalDevice();
+    createLogicalDevice();
 }
+
+// The creation of a logical device involves specifying a bunch of details in structs again, of which the first one will be VkDeviceQueueCreateInfo. 
+// This structure describes the number of queues we want for a single queue family. Right now we're only interested in a queue with graphics capabilities.
+void VulkanApp::createLogicalDevice() {
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+
+    // Vulkan lets you assign priorities to queues to influence the scheduling of command buffer execution using floating point numbers between 0.0 and 1.0. This is required even if there is only a single queue:
+    float queuePriority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    // The next information to specify is the set of device features that we'll be using
+    VkPhysicalDeviceFeatures deviceFeatures{};
+
+    // With the previous two structures in place, we can start filling in the main VkDeviceCreateInfo structure.
+    VkDeviceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+    // add pointers to the queue creation info and device features structs:
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    createInfo.enabledExtensionCount = 0;
+
+    // enabledLayerCount and ppEnabledLayerNames fields of VkDeviceCreateInfo are ignored by up-to-date implementations. However, it is still a good idea to set them anyway to be compatible with older implementations:
+    if (enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.ppEnabledLayerNames = validationLayers.data();
+    }
+    else {
+        createInfo.enabledLayerCount = 0;
+    }
+
+    // instantiate the logical device with a call to the appropriately named vkCreateDevice
+
+    // The parameters are the physical device to interface with, the queue and usage info we just specified,
+    // the optional allocation callbacks pointer and a pointer to a variable to store the logical device handle in. 
+    // Similarly to the instance creation function, this call can return errors based on enabling non-existent extensions or specifying the desired usage of unsupported features.
+    // the device is destroyed in the cleanup function
+    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create logical device!");
+    }
+    // The queues are automatically created along with the logical device, but I don't have a handle to interface with them yet. 
+    // Device queues are implicitly cleaned up when the device is destroyed, so we don't need to do anything in cleanup
+    // vkGetDeviceQueue function to retrieve queue handles for each queue family.
+    vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+    // Because we're only creating a single queue from this family, we'll simply use index 0
+}
+
 
 // The graphics card that we'll end up selecting will be stored in a VkPhysicalDevice handle that is added as a new class member. 
 // This object will be implicitly destroyed when the VkInstance is destroyed, so we won't need to do anything new in the cleanup function.
@@ -186,7 +242,10 @@ void VulkanApp::cleanup() {
     glfwDestroyWindow(window);
 
     glfwTerminate();
+
+    vkDestroyDevice(device, nullptr);
 }
+
 
 
 

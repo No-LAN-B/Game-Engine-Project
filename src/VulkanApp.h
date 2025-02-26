@@ -52,7 +52,7 @@ private:
     void cleanup();
     void createInstance();
     bool checkValidationLayerSupport();
-    bool isComplete();
+    void createLogicalDevice();
     bool isDeviceSuitable(VkPhysicalDevice device);
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     void setupDebugMessenger();
@@ -70,6 +70,8 @@ private:
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
+    VkQueue graphicsQueue; 
+    VkDevice device;
     GLFWwindow* window;
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
