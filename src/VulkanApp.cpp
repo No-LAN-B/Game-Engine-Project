@@ -52,6 +52,7 @@ void VulkanApp::run() {
     initVulkan();
     mainLoop();
     cleanup();
+    
 }
 
 void VulkanApp::initWindow() {
@@ -68,8 +69,18 @@ void VulkanApp::initVulkan() {
     // Vulkan initialization logic here
     createInstance();
     setupDebugMessenger();
+    createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
+}
+
+
+
+// 
+void VulkanApp::createSurface() {
+    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
 }
 
 // The creation of a logical device involves specifying a bunch of details in structs again, of which the first one will be VkDeviceQueueCreateInfo. 
@@ -77,14 +88,18 @@ void VulkanApp::initVulkan() {
 void VulkanApp::createLogicalDevice() {
     QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-    queueCreateInfo.queueCount = 1;
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
-    // Vulkan lets you assign priorities to queues to influence the scheduling of command buffer execution using floating point numbers between 0.0 and 1.0. This is required even if there is only a single queue:
     float queuePriority = 1.0f;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     // The next information to specify is the set of device features that we'll be using
     VkPhysicalDeviceFeatures deviceFeatures{};
@@ -94,8 +109,8 @@ void VulkanApp::createLogicalDevice() {
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
     // add pointers to the queue creation info and device features structs:
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = 1;
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
@@ -119,10 +134,11 @@ void VulkanApp::createLogicalDevice() {
     if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
-    // The queues are automatically created along with the logical device, but I don't have a handle to interface with them yet. 
+    // The queues are automatically created along with the logical device, but I don't have a handle to i nterface with them yet. 
     // Device queues are implicitly cleaned up when the device is destroyed, so we don't need to do anything in cleanup
     // vkGetDeviceQueue function to retrieve queue handles for each queue family.
     vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+    vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
     // Because we're only creating a single queue from this family, we'll simply use index 0
 }
 
@@ -204,8 +220,16 @@ VulkanApp::QueueFamilyIndices VulkanApp::findQueueFamilies(VkPhysicalDevice devi
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphicsFamily = i;
         }
+        // modified the findQueueFamilies function to look for a queue family that has the capability of presenting to our window surface.
+        // The function to check for that is vkGetPhysicalDeviceSurfaceSupportKHR, 
+        // which takes the physical device, queue family index and surface as parameters.
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
 
-        // from struct can use this for an early exit from findQueueFamilies
+        if (presentSupport) {
+            indices.presentFamily = i;
+        }
+
         if (indices.isComplete()) {
             break;
         }
@@ -236,6 +260,9 @@ void VulkanApp::cleanup() {
     if (enableValidationLayers) {
        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
+
+    // Window surface destruction (Windows = KHR Cross Platform = glfw / normal one)
+    vkDestroySurfaceKHR(instance, surface, nullptr);
     // the allocation and deallocation functions in Vulkan have an optional allocator callback that we'll ignore by passing nullptr to it
     vkDestroyInstance(instance, nullptr);
 
@@ -244,6 +271,7 @@ void VulkanApp::cleanup() {
     glfwTerminate();
 
     vkDestroyDevice(device, nullptr);
+
 }
 
 

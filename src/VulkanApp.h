@@ -1,6 +1,10 @@
 #ifndef VULKAN_APP_H
 #define VULKAN_APP_H
 
+// for native window creation (although I'll be using glfw instead but its here anyways)
+//#define GLFW_EXPOSE_NATIVE_WIN32
+//#include <GLFW/glfw3native.h>
+//#define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 // GLFW will include its own definitions and automatically load the Vulkan header with it
@@ -11,7 +15,7 @@
 #include <vector>
 #include <cstring>
 #include <optional> // wrapper that contains no value until you assign something to it. At any point you can query if it contains a value or not by calling its has_value() member function. 
-
+#include <set>
 
 class VulkanApp {
     // any value of uint32_t could in theory be a valid queue family index including 0. 
@@ -19,6 +23,7 @@ class VulkanApp {
     // std::optional (#include <optional> in header file)
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;
+        std::optional<uint32_t> presentFamily;
 
         // To make this more convenient, I added a generic check to the struct itself:
         bool isComplete() {
@@ -56,6 +61,7 @@ private:
     bool isDeviceSuitable(VkPhysicalDevice device);
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     void setupDebugMessenger();
+    void createSurface();
     std::vector<const char*> getRequiredExtensions();
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
@@ -65,11 +71,13 @@ private:
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData);
 
-
-    
-
+    // Window Stuff
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
+    VkSurfaceKHR surface;
+    VkQueue presentQueue;
+
+    // Vulkan Stuff
     VkQueue graphicsQueue; 
     VkDevice device;
     GLFWwindow* window;
