@@ -350,7 +350,7 @@ void VulkanApp::createSwapChain() {
     vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
 
     swapChainImageFormat = surfaceFormat.format;
-    swapChainExtent = extent;
+    swapChainExtent = extent;  
 }
 
 // -- Swap Chain Config Essentially -- //
