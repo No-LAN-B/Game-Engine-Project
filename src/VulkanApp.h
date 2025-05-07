@@ -61,6 +61,7 @@ class VulkanApp {
 
         void initWindow();
         void initVulkan();
+        void createImageViews();
         void pickPhysicalDevice();
         void mainLoop();
         void cleanup();
@@ -109,6 +110,9 @@ class VulkanApp {
         std::vector<VkImage> swapChainImages;
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
+
+        //Vulkan Images
+        std::vector<VkImageView> swapChainImageViews;
     };
 
 #endif // VULKAN_APP_H
