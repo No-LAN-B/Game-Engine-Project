@@ -73,6 +73,7 @@ void VulkanApp::initVulkan() {
     pickPhysicalDevice();
     createLogicalDevice();
 	createImageViews();
+    createGraphicsPipeline();
 }
 
 void VulkanApp::createImageViews() {
@@ -193,6 +194,11 @@ void VulkanApp::createInstance() {
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
         throw std::runtime_error("failed to create instance!");
     }
+}
+
+
+void VulkanApp::createGraphicsPipeline() {
+
 }
 
 void VulkanApp::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {

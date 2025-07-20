@@ -62,6 +62,7 @@ class VulkanApp {
         void initWindow();
         void initVulkan();
         void createImageViews();
+        void createGraphicsPipeline();
         void pickPhysicalDevice();
         void mainLoop();
         void cleanup();
