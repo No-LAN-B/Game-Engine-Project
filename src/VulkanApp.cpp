@@ -1,5 +1,3 @@
-
-
 #include "VulkanApp.h"
 
 VulkanApp::VulkanApp() {
@@ -22,6 +20,24 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
+
+std::vector<char> VulkanApp::readFile(const std::string& filename) {
+    // open at end so tellg() gives us size
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+    if (!file.is_open()) {
+        throw std::runtime_error("failed to open file: " + filename);
+    }
+
+    size_t fileSize = (size_t)file.tellg();
+    std::vector<char> buffer(fileSize);
+
+    // rewind & read all bytes
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+    file.close();
+
+    return buffer;
+}
 
 // The vkCreateDebugUtilsMessengerEXT call requires a valid instance to have been created and vkDestroyDebugUtilsMessengerEXT must be called before the instance is destroyed.
 // This currently leaves us unable to debug any issues in the vkCreateInstance and vkDestroyInstance calls.
@@ -198,7 +214,50 @@ void VulkanApp::createInstance() {
 
 
 void VulkanApp::createGraphicsPipeline() {
+    auto vertShaderCode = readFile("shaders/vert.spv");
+    auto fragShaderCode = readFile("shaders/frag.spv");
 
+    VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+    VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageInfo.module = vertShaderModule;
+    vertShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = fragShaderModule;
+    fragShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+    // cleanup should then happen at the end of the function by adding two calls to vkDestroyShaderModule. All of the remaining code in this chapter will be inserted before these lines.
+    vkDestroyShaderModule(device, fragShaderModule, nullptr);
+    vkDestroyShaderModule(device, vertShaderModule, nullptr);
+}
+
+// Before we can pass the code to the pipeline, we have to wrap it in a VkShaderModule object.
+// The function will take a buffer with the bytecode as parameter and create a VkShaderModule from it.
+VkShaderModule VulkanApp::createShaderModule(const std::vector<char>& code) {
+    // Creating a shader module is simple, I only need to specify a pointer to the buffer with the bytecode and the length of it. This information is specified in a VkShaderModuleCreateInfo structure. 
+    // The one catch is that the size of the bytecode is specified in bytes, but the bytecode pointer is a uint32_t pointer rather than a char pointer. Therefore we will need to cast the pointer with reinterpret_cast. When you perform a cast like this,
+    // you also need to ensure that the data satisfies the alignment requirements of uint32_t. Lucky for me, the data is stored in an std::vector where the default allocator already ensures that the data satisfies the worst case alignment requirements.
+    VkShaderModuleCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = code.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+    VkShaderModule shaderModule;
+    if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create shader module!");
+    }
+    // The parameters are the same as those in previous object creation functions: 
+    // the logical device, pointer to create info structure, optional pointer to custom allocators and handle output variable. 
+    // The buffer with the code can be freed immediately after creating the shader module. Don't forget to return the created shader module:
+    return shaderModule;
 }
 
 void VulkanApp::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {

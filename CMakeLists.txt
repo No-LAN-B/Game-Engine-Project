@@ -54,7 +54,7 @@ target_sources(GameEngine
 
 # 1) Where is the script?
 set(SHADER_COMPILER
-  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/compile-shaders.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/compile.bat"
 )
 
 # 2) Where to put the compiled SPIR-V
@@ -68,7 +68,7 @@ add_custom_target(CompileShaders
           "${CMAKE_CURRENT_SOURCE_DIR}/src/shaders"   # input folder
           "${GENERATED_SPV_DIR}"                      # output folder
   DEPENDS ${SHADERS_TO_COMPILE}
-  COMMENT "Compiling GLSL/HLSL → SPIR-V via compile-shaders.bat"
+  COMMENT "Compiling GLSL/HLSL → SPIR-V via compile.bat"
   VERBATIM
 )
 

@@ -19,6 +19,8 @@
 #include <limits>
 #include <optional> // wrapper that contains no value until you assign something to it. At any point you can query if it contains a value or not by calling its has_value() member function. 
 #include <set>
+#include <fstream>
+#include<stdexcept>
 
 // any value of uint32_t could in theory be a valid queue family index including 0. 
     // Luckily C++17 introduced a data structure to distinguish between the case of a value existing or not:
@@ -62,6 +64,7 @@ class VulkanApp {
         void initWindow();
         void initVulkan();
         void createImageViews();
+        std::vector<char> readFile(const std::string& filename);
         void createGraphicsPipeline();
         void pickPhysicalDevice();
         void mainLoop();
@@ -74,6 +77,7 @@ class VulkanApp {
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
         void setupDebugMessenger();
         void createSurface();
+        VkShaderModule createShaderModule(const std::vector<char>& code);
         std::vector<const char*> getRequiredExtensions();
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
     
