@@ -14,6 +14,9 @@ set(SRC_FILES
     src/Window.cpp
     src/Device.cpp
     src/Pipeline.cpp
+    src/SwapChain.cpp
+    src/DebugUtils.cpp
+    src/Utils.cpp
 )
 
 set(HEADER_FILES
@@ -21,6 +24,9 @@ set(HEADER_FILES
     src/Window.h
     src/Device.h
     src/Pipeline.h
+    src/SwapChain.h
+    src/DebugUtils.h
+    src/Utils.h
 )
 
 # ——————————————————————————————————————————————
