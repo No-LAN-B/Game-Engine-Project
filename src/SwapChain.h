@@ -29,12 +29,11 @@ public:
 
 private:
     // Internal setup steps.
-    void createSurface();
     void createSwapChain();
     void createImageViews();
 
     // Helpers for querying swapchain support.
-    SwapChainSupportDetails  querySwapChainSupport(VkPhysicalDevice physDev);
+    SwapChainSupportDetails  querySwapChainSupport(VkPhysicalDevice physDev, VkSurfaceKHR surface);
     VkSurfaceFormatKHR       chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR         chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D               chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
@@ -42,7 +41,6 @@ private:
     // State
     Device* device = nullptr;
     GLFWwindow* window = nullptr;
-    VkSurfaceKHR            surface = VK_NULL_HANDLE;
     VkSwapchainKHR          swapChain = VK_NULL_HANDLE;
     std::vector<VkImage>    images;
     std::vector<VkImageView> imageViews;

@@ -15,11 +15,23 @@ void Device::init(GLFWwindow* window, DebugUtils& debugUtils) {
     debugUtils.setupValidationLayers();
     createInstance("Modor Engine", debugUtils);
     debugUtils.setupDebugMessenger(_instance);
+    createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
 }
 
+void Device::createSurface() {
+    if (glfwCreateWindowSurface(_instance, window, nullptr, &_surface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+
+    }
+}
+
 void Device::cleanup() {
+    if (_surface != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(_instance, _surface, nullptr);
+        _surface = VK_NULL_HANDLE;
+    }
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
 }
@@ -29,6 +41,8 @@ VkPhysicalDevice Device::physicalDevice() const { return _physical; }
 VkDevice Device::device() const { return _device; }
 VkQueue Device::graphicsQueue() const { return _graphicsQ; }
 VkQueue Device::presentQueue() const { return _presentQ; }
+
+
 
 void Device::createInstance(const char* appName, DebugUtils& debugUtils) {
     if (enableValidation && !checkValidationLayerSupport()) {
@@ -158,7 +172,7 @@ Device::QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice dev) {
             
         }
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(dev, i, surface, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(dev, i, _surface, &presentSupport);
         if (presentSupport) {
             indices.presentFamily = i;
             
@@ -224,22 +238,22 @@ uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
 SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice physDev) const {
     SwapChainSupportDetails details;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physDev, surface, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physDev, _surface, &details.capabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physDev, surface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physDev, _surface, &formatCount, nullptr);
     if (formatCount > 0) {
         details.formats.resize(formatCount);
         vkGetPhysicalDeviceSurfaceFormatsKHR(
-            physDev, surface, &formatCount, details.formats.data());
+            physDev, _surface, &formatCount, details.formats.data());
     }
 
     uint32_t presentCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physDev, surface, &presentCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physDev, _surface, &presentCount, nullptr);
     if (presentCount > 0) {
         details.presentModes.resize(presentCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR(
-            physDev, surface, &presentCount, details.presentModes.data());
+            physDev, _surface, &presentCount, details.presentModes.data());
     }
 
     return details;

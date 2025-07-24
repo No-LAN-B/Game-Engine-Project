@@ -16,7 +16,9 @@ public:
 
     // Cleanup Vulkan objects.
     void cleanup();
-
+    
+    // Expose the surface so others can use it
+    VkSurfaceKHR surface() const { return _surface; }
     // Accessors:
     // Also noticed some people spacing their declarations in headers like this and it makes it alot easier to read I cant lie
     VkInstance        instance()       const;
@@ -36,6 +38,7 @@ public:
 
 private:
     void createInstance(const char* appName, DebugUtils& debugUtils);
+    void createSurface();
     void pickPhysicalDevice();
     void createLogicalDevice();
 
@@ -49,11 +52,11 @@ private:
     // Member data:
     GLFWwindow* window = nullptr;
     VkInstance _instance = VK_NULL_HANDLE;
+    VkSurfaceKHR _surface = VK_NULL_HANDLE;
     VkPhysicalDevice _physical = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;
     VkQueue _graphicsQ = VK_NULL_HANDLE;
     VkQueue _presentQ = VK_NULL_HANDLE;
-    VkSurfaceKHR surface = VK_NULL_HANDLE;
 
     // Extensions & validation:
     const std::vector<const char*> validationLayers = {

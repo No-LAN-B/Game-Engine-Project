@@ -19,8 +19,8 @@ void Pipeline::cleanup() {
 
 void Pipeline::createGraphicsPipeline() {
     // Load shader bytecode
-    auto vertShaderCode = readFile("shaders/vert.spv");
-    auto fragShaderCode = readFile("shaders/frag.spv");
+    auto vertShaderCode = readFile("shaders_spv/vert.spv");
+    auto fragShaderCode = readFile("shaders_spv/frag.spv");
 
     // Create shader modules
     VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
@@ -190,3 +190,4 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code) {
 
     return module;
 }
+

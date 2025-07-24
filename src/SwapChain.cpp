@@ -8,7 +8,6 @@
 void SwapChain::init(Device& dev, GLFWwindow* win) {
     device = &dev;
     window = win;
-    createSurface();
     createSwapChain();
     createImageViews();
 }
@@ -18,17 +17,11 @@ void SwapChain::cleanup() {
         vkDestroyImageView(device->device(), view, nullptr);
     }
     vkDestroySwapchainKHR(device->device(), swapChain, nullptr);
-    vkDestroySurfaceKHR(device->instance(), surface, nullptr);
-}
-
-void SwapChain::createSurface() {
-    if (glfwCreateWindowSurface(device->instance(), window, nullptr, &surface) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create window surface!");
-    }
+    vkDestroySurfaceKHR(device->instance(), device->surface(), nullptr);
 }
 
 void SwapChain::createSwapChain() {
-    auto support = querySwapChainSupport(device->physicalDevice());
+    auto support = querySwapChainSupport(device->physicalDevice(), device->surface());
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(support.formats);
     VkPresentModeKHR   presentMode = chooseSwapPresentMode(support.presentModes);
@@ -41,7 +34,7 @@ void SwapChain::createSwapChain() {
     }
 
     VkSwapchainCreateInfoKHR ci{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-    ci.surface = surface;
+    ci.surface = device->surface();
     ci.minImageCount = imageCount;
     ci.imageFormat = surfaceFormat.format;
     ci.imageColorSpace = surfaceFormat.colorSpace;
@@ -106,7 +99,7 @@ void SwapChain::createImageViews() {
     }
 }
 
-SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice physDev) {
+SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice physDev, VkSurfaceKHR surface) {
     SwapChainSupportDetails details;
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physDev, surface, &details.capabilities);
