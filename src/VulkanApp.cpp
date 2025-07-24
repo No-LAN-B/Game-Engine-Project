@@ -31,6 +31,8 @@ void VulkanApp::initVulkan() {
     debugUtils.setupValidationLayers();            // populate & create debug messenger
     device.init(window, debugUtils);         // instance, pick physical & create logical device
     swapChain.init(device, window);          // swapchain creation + image views
+
+    renderPass.init(device, swapChain);
     pipeline.init(device, swapChain);        // graphics pipeline (with dynamic state)
 }
 
@@ -45,6 +47,7 @@ void VulkanApp::mainLoop() {
 void VulkanApp::cleanup() {
     // Destroys pipelines, swapchain, device, debug messenger, surface, instance, window.
     pipeline.cleanup();
+    renderPass.cleanup(device);
     swapChain.cleanup();
     device.cleanup();
     debugUtils.cleanup(device.instance());

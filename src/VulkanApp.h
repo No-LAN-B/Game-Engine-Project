@@ -13,6 +13,7 @@
 // High-level application class: orchestrates window, Vulkan setup, main loop, cleanup.
 #include "Device.h"
 #include "SwapChain.h"
+#include "RenderPass.h"
 #include "Pipeline.h"
 #include "DebugUtils.h"
 
@@ -50,6 +51,7 @@ private:
     // Subsystem managers
     Device     device;      // instance, physical & logical device, queues
     SwapChain  swapChain;   // swapchain creation, image views
+    RenderPass renderPass;
     Pipeline   pipeline;    // graphics pipeline + dynamic state
     DebugUtils debugUtils;  // validation layers & debug messenger
 };

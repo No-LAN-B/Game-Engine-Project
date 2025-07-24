@@ -17,6 +17,7 @@ set(SRC_FILES
     src/SwapChain.cpp
     src/DebugUtils.cpp
     src/Utils.cpp
+    src/RenderPass.cpp
 )
 
 set(HEADER_FILES
@@ -27,6 +28,7 @@ set(HEADER_FILES
     src/SwapChain.h
     src/DebugUtils.h
     src/Utils.h
+    src/RenderPass.h
 )
 
 # ——————————————————————————————————————————————
