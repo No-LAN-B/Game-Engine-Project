@@ -33,7 +33,7 @@ void VulkanApp::initVulkan() {
     swapChain.init(device, window);          // swapchain creation + image views
 
     renderPass.init(device, swapChain);
-    pipeline.init(device, swapChain);        // graphics pipeline (with dynamic state)
+    pipeline.init(device, swapChain, renderPass);        // graphics pipeline (with dynamic state)
 }
 
 void VulkanApp::mainLoop() {
