@@ -20,6 +20,8 @@ public:
     /// Destroy the pipeline object and its layout (in that order).
     void cleanup();
 
+    void bind(VkCommandBuffer commandBuffer);
+
     /// Raw VkPipeline for vkCmdBindPipeline(…).
     VkPipeline       get()    const { return graphicsPipeline; }
 

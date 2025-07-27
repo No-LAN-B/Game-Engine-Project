@@ -4,21 +4,25 @@
 #include "RenderPass.h"
 #include "Pipeline.h"
 
+#include <vulkan/vulkan.h>
+#include <vector>
+
 class Renderer {
 public:
-    Renderer(Device& device, SwapChain& swapChain, RenderPass& renderPass, Pipeline& pipeline);
-    ~Renderer();
+    void init(Device& device_, SwapChain& swapChain_, RenderPass& renderPass_, Pipeline& pipeline_);
+
+    void cleanup();
 
     void createCommandPool(); // needs fix
-    void createCommandBuffers();
-    void recordCommandBuffer(uint32_t imageIndex);
+    void createCommandBuffer();
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     VkCommandBuffer getCurrentCommandBuffer() const;
 
 private:
-    Device& device;
-    SwapChain& swapChain;
-    RenderPass& renderPass;
-    Pipeline& pipeline;
+    Device* device = nullptr;
+    SwapChain* swapChain = nullptr;
+    RenderPass* renderPass = nullptr;
+    Pipeline* pipeline = nullptr;
 
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;

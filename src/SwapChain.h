@@ -27,6 +27,7 @@ public:
     void cleanupFramebuffers(Device& device);
 
     // Accessors for rendering code.
+    const std::vector<VkFramebuffer>& getFramebuffers() const { return swapChainFramebuffers; }
     VkFormat                        getImageFormat() const { return swapChainImageFormat; }
     VkExtent2D                      getExtent()      const { return swapChainExtent; }
     const std::vector<VkImageView>& getImageViews()  const { return imageViews; }
