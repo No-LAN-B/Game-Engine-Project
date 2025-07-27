@@ -16,6 +16,9 @@ void SwapChain::cleanup() {
     for (auto view : imageViews) {
         vkDestroyImageView(device->device(), view, nullptr);
     }
+    for (auto framebuffer : swapChainFramebuffers) {
+        vkDestroyFramebuffer(device->device(), framebuffer, nullptr);
+    }
     vkDestroySwapchainKHR(device->device(), swapChain, nullptr);
     vkDestroySurfaceKHR(device->instance(), device->surface(), nullptr);
 }
@@ -155,4 +158,38 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& caps) {
         actual.height = std::clamp(actual.height, caps.minImageExtent.height, caps.maxImageExtent.height);
         return actual;
     }
+}
+
+void SwapChain::createFramebuffers(Device& device, RenderPass& renderPass) {
+    swapChainFramebuffers.resize(imageViews.size());
+
+    for (size_t i = 0; i < imageViews.size(); i++) {
+        VkImageView attachments[] = {
+            imageViews[i]
+        };
+
+        VkFramebufferCreateInfo fbInfo{};
+        fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        fbInfo.renderPass = renderPass.get();
+        fbInfo.attachmentCount = 1;
+        fbInfo.pAttachments = attachments;
+        fbInfo.width = swapChainExtent.width;
+        fbInfo.height = swapChainExtent.height;
+        fbInfo.layers = 1;
+
+        if (vkCreateFramebuffer(
+            device.device(),
+            &fbInfo,
+            nullptr,
+            &swapChainFramebuffers[i]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create framebuffer!");
+        }
+    }
+}
+
+void SwapChain::cleanupFramebuffers(Device& device) {
+    for (auto fb : swapChainFramebuffers) {
+        vkDestroyFramebuffer(device.device(), fb, nullptr);
+    }
+    swapChainFramebuffers.clear();
 }

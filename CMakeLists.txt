@@ -18,6 +18,7 @@ set(SRC_FILES
     src/DebugUtils.cpp
     src/Utils.cpp
     src/RenderPass.cpp
+    src/Renderer.cpp
 )
 
 set(HEADER_FILES
@@ -29,6 +30,7 @@ set(HEADER_FILES
     src/DebugUtils.h
     src/Utils.h
     src/RenderPass.h
+    src/Renderer.h
 )
 
 # ——————————————————————————————————————————————

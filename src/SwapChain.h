@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include "RenderPass.h"
 
 // Forward declare Device wrapper to break the include cycle.
 class Device;
@@ -21,6 +22,9 @@ public:
 
     // Destroy image views, swap chain, and surface.
     void cleanup();
+
+    void createFramebuffers(Device& device, RenderPass& renderPass);
+    void cleanupFramebuffers(Device& device);
 
     // Accessors for rendering code.
     VkFormat                        getImageFormat() const { return swapChainImageFormat; }
@@ -44,6 +48,7 @@ private:
     VkSwapchainKHR          swapChain = VK_NULL_HANDLE;
     std::vector<VkImage>    images;
     std::vector<VkImageView> imageViews;
+    std::vector<VkFramebuffer> swapChainFramebuffers;
     VkFormat                swapChainImageFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D              swapChainExtent = {};
 };
