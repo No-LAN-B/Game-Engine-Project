@@ -15,7 +15,7 @@ public:
 
     void createSyncObjects();
     void createCommandPool();
-    void createCommandBuffer();
+    void createCommandBuffers();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     void drawFrame();
 
@@ -32,8 +32,10 @@ private:
     std::vector<VkCommandBuffer>    commandBuffers;
     
     uint32_t currentImageIndex = 0;
+    uint32_t currentFrame = 0;
+    const int MAX_FRAMES_IN_FLIGHT = 2;
 
-    VkSemaphore imageAvailableSemaphore;
-    VkSemaphore renderFinishedSemaphore;
-    VkFence     inFlightFence;
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
 };
