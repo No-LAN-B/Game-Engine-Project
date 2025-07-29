@@ -18,7 +18,7 @@ struct SwapChainSupportDetails {
 class SwapChain {
 public:
     // Initialize window surface, swap chain, and image views.
-    void init(Device& device, GLFWwindow* window);
+    void init(Device& dev, GLFWwindow* win);
 
     // Destroy image views, swap chain, and surface.
     void cleanup();
@@ -27,6 +27,7 @@ public:
     void cleanupFramebuffers(Device& device);
 
     // Accessors for rendering code.
+    VkSwapchainKHR getSwapChain() const { return swapChain; }
     const std::vector<VkFramebuffer>& getFramebuffers() const { return swapChainFramebuffers; }
     VkFormat                        getImageFormat() const { return swapChainImageFormat; }
     VkExtent2D                      getExtent()      const { return swapChainExtent; }

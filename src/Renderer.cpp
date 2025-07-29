@@ -3,10 +3,12 @@
 #include "SwapChain.h"
 #include "RenderPass.h"
 #include "Pipeline.h"
+#include "VulkanApp.h"
 
 #include <stdexcept>
 #include <vector>
 #include <array>
+#include <iostream>
 
 void Renderer::init(Device& device_, SwapChain& swapChain_, RenderPass& renderPass_, Pipeline& pipeline_) {
     // assign the pointers
@@ -17,9 +19,15 @@ void Renderer::init(Device& device_, SwapChain& swapChain_, RenderPass& renderPa
 
     createCommandPool();
     createCommandBuffer();
+    createSyncObjects();
 }
 
 void Renderer::cleanup(){
+    vkDeviceWaitIdle(device->device());
+
+    vkDestroySemaphore(device->device(), renderFinishedSemaphore, nullptr);
+    vkDestroySemaphore(device->device(), imageAvailableSemaphore, nullptr);
+    vkDestroyFence(device->device(), inFlightFence, nullptr);
     vkDestroyCommandPool(device->device(), commandPool, nullptr);
 }
 
@@ -113,4 +121,81 @@ void Renderer::createCommandBuffer() {
     }
 }
 
+void Renderer::drawFrame() {
+    // 1) Wait for the previous frame’s fence
+    vkWaitForFences(device->device(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(device->device(), 1, &inFlightFence);
+
+    // 2) Acquire next image from the swapchain
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(
+        device->device(),
+        swapChain->getSwapChain(),          // <-- make sure you have VkSwapchainKHR getSwapChain() const;
+        UINT64_MAX,
+        imageAvailableSemaphore,
+        VK_NULL_HANDLE,
+        &imageIndex
+    );
+
+    // remember which buffer we’ll use this frame
+    currentImageIndex = imageIndex;
+
+    // grab the command buffer for this image
+    VkCommandBuffer cmdBuf = commandBuffers[currentImageIndex];
+
+    // 3) Record & submit it
+    vkResetCommandBuffer(cmdBuf, 0);
+    recordCommandBuffer(cmdBuf, currentImageIndex);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &cmdBuf;
+    VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    if (vkQueueSubmit(device->graphicsQueue(), 1, &submitInfo, inFlightFence) != VK_SUCCESS) {
+        throw std::runtime_error("failed to submit draw command buffer!");
+    }
+
+    // 4) Present
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+    VkSwapchainKHR sc[] = { swapChain->getSwapChain() };
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = sc;
+    presentInfo.pImageIndices = &imageIndex;
+
+    vkQueuePresentKHR(device->presentQueue(), &presentInfo);
+}
+
+
+void Renderer::createSyncObjects() {
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    //build fence in signalled state so vkwait doesnt hold indefinitely for fences that wont come
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    if (vkCreateSemaphore(device->device(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+        vkCreateSemaphore(device->device(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+        vkCreateFence(device->device(), &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create synchronization objects for a frame!");
+    }
+
+}
+
+VkCommandBuffer Renderer::getCurrentCommandBuffer() const {
+    return commandBuffers[currentImageIndex];
+}
     

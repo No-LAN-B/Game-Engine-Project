@@ -28,11 +28,11 @@ void Device::createSurface() {
 }
 
 void Device::cleanup() {
+    vkDestroyDevice(_device, nullptr);
     if (_surface != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(_instance, _surface, nullptr);
         _surface = VK_NULL_HANDLE;
     }
-    vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
 }
 

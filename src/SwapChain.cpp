@@ -8,8 +8,11 @@
 void SwapChain::init(Device& dev, GLFWwindow* win) {
     device = &dev;
     window = win;
+
     createSwapChain();
     createImageViews();
+
+    // build those VkFramebuffer objects now that we have a renderPass
 }
 
 void SwapChain::cleanup() {
@@ -20,7 +23,6 @@ void SwapChain::cleanup() {
         vkDestroyFramebuffer(device->device(), framebuffer, nullptr);
     }
     vkDestroySwapchainKHR(device->device(), swapChain, nullptr);
-    vkDestroySurfaceKHR(device->instance(), device->surface(), nullptr);
 }
 
 void SwapChain::createSwapChain() {
