@@ -25,6 +25,7 @@ public:
 
 private:
     void initWindow();
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     void initVulkan();
     void mainLoop();
     void cleanup();
@@ -40,8 +41,6 @@ private:
     SwapChain  swapChain;
     RenderPass renderPass;
     Pipeline   pipeline;
-
-    // Our renderer instance
     Renderer   renderer;
 };
 

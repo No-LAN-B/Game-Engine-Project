@@ -1,5 +1,6 @@
 // src/VulkanApp.cpp
 #include "VulkanApp.h"
+#include "Renderer.h"
 #include <stdexcept> // for runtime_error
 
 VulkanApp::VulkanApp() {
@@ -22,6 +23,10 @@ void VulkanApp::initWindow() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+}
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    auto app = reinterpret_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
+    app->framebufferResized = true; // stumped on the fix here
 }
 
 void VulkanApp::initVulkan() {

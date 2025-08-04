@@ -127,8 +127,20 @@ void Renderer::createCommandBuffers() {
 }
 
 void Renderer::drawFrame() {
+    vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+    uint32_t imageIndex;
+    VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        recreateSwapChain();
+        return;
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
     // 1) Wait on the previous frame’s GPU work
-    vkWaitForFences(device->device(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(device->device(), 1, &inFlightFences[currentFrame]);
 
     // 2) Grab the next swapchain image directly into currentImageIndex
@@ -171,7 +183,15 @@ void Renderer::drawFrame() {
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &currentImageIndex;
 
-    vkQueuePresentKHR(device->presentQueue(), &presentInfo);
+    result = vkQueuePresentKHR(device->presentQueue(), &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+        framebufferResized = false;
+        recreateSwapChain();
+    }
+    else if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to present swap chain image!");
+    }
 
     // 6) Advance to the next frame slot
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;

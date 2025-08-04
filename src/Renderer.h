@@ -21,6 +21,7 @@ public:
 
     // Declaration of getter
     VkCommandBuffer getCurrentCommandBuffer() const;
+    bool framebufferResized = false;
 
 private:
     Device* device = nullptr;

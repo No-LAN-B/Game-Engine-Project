@@ -1,5 +1,6 @@
 // src/SwapChain.cpp
 #include "SwapChain.h"
+#include "RenderPass.h"
 #include "Device.h"            // for Device::instance(), Device::device(), Device::physicalDevice()
 #include <stdexcept>
 #include <algorithm>           // for std::clamp
@@ -194,4 +195,20 @@ void SwapChain::cleanupFramebuffers(Device& device) {
         vkDestroyFramebuffer(device.device(), fb, nullptr);
     }
     swapChainFramebuffers.clear();
+}
+
+void SwapChain::recreateSwapChain(Device& device, RenderPass& renderPass) {
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(window, &width, &height);
+        glfwWaitEvents();
+    }
+    vkDeviceWaitIdle(device.device());
+
+    cleanup();
+
+    createSwapChain();
+    createImageViews();
+    createFramebuffers(device, renderPass);
 }

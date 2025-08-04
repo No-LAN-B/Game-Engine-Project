@@ -25,6 +25,7 @@ public:
 
     void createFramebuffers(Device& device, RenderPass& renderPass);
     void cleanupFramebuffers(Device& device);
+    void recreateSwapChain(Device& device, RenderPass& renderPass);
 
     // Accessors for rendering code.
     VkSwapchainKHR getSwapChain() const { return swapChain; }
