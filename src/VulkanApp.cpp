@@ -26,7 +26,7 @@ void VulkanApp::initWindow() {
 }
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
     auto app = reinterpret_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
-    app->framebufferResized = true; // stumped on the fix here
+    app->framebufferResized = true; // stumped on the fix here :(
 }
 
 void VulkanApp::initVulkan() {
