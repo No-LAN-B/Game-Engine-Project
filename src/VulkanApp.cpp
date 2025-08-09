@@ -21,12 +21,15 @@ void VulkanApp::run() {
 void VulkanApp::initWindow() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, VulkanApp::framebufferResizeCallback);
 }
-static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-    auto app = reinterpret_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
-    app->framebufferResized = true; // stumped on the fix here :(
+void VulkanApp::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    auto app = static_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
+    app->setFramebufferResized(true);
 }
 
 void VulkanApp::initVulkan() {

@@ -29,6 +29,9 @@ private:
     void initVulkan();
     void mainLoop();
     void cleanup();
+    void setFramebufferResized(bool resized) {
+        renderer.framebufferResized = resized;
+    };
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
